@@ -25,7 +25,7 @@ fill in a folder name
 
 Downloader:
 
-hit the Download Galleries -> it will download all the exports made earlier...so be carefull if you crate exports, it may take a while :D
+hit the Download Galleries -> it will download all the exports made earlier...so be carefull if you create exports, it may take a while :D
 the background app for the downloader is gallery-dl
 
 
