@@ -1,26 +1,23 @@
 import streamlit as st
 import settings  # Import the settings module
-import pornpics  # Import the pornpics module
+import cleaner  # Import the pornpics module
+import downloader # Import the downloader module
 
 # Main function to run the app
 def main():
     # Set the page title
-    st.title("ImageFap Downloader")
+    st.title("Picture Downloader")
     
     # Create tabs
-    tabs = st.tabs(["imagefap", "pornpics", "downloader", "settings"])
+    tabs = st.tabs(["Cleaner", "Downloader", "settings"])
     
     # Fill each tab with content
     with tabs[0]:
-        st.title("imagefap")
-        st.write("This is the imagefap tab. It will be implemented later.")
+        cleaner.cleaner_tab()  # tab with the cleaner for the urls      
     with tabs[1]:
-        pornpics.pornpics_tab()  # Call the function from the pornpics module
+        downloader.downloader_tab()  # call gallery-dl to download the galleries from the export.txt files in the default folders
     with tabs[2]:
-        st.title("downloader")
-        st.write("This is the downloader tab. It will be implemented later.")
-    with tabs[3]:
-        settings.settings_tab()  # Call the function from the settings module
+        settings.settings_tab()  # setings tab for the default download folder and future settings
 
 # Run the app
 if __name__ == "__main__":
