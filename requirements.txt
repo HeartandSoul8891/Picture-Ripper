@@ -1,2 +1,4 @@
 streamlit
 gallery-dl
+playwright
+beautifulsoup4

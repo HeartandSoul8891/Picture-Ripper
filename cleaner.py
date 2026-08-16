@@ -1,91 +1,53 @@
 import streamlit as st
-import re
-import os
-
-# Callback function to clear the text inputs before the page re-renders
-def reset_fields():
-    st.session_state.pasted_text = ""
-    st.session_state.model_or_folder_name = ""
+from settings import load_settings
+from scripts.clean_script import clean_urls
+from scripts.clean_scrape_script import process_scrape_files
 
 def cleaner_tab():
-    st.title("Cleaner")
-    st.write("Paste the URLs and descriptions of galleries here:")
-
-    # Initialize state variables if they don't exist yet
-    if "pasted_text" not in st.session_state:
-        st.session_state.pasted_text = ""
-    if "model_or_folder_name" not in st.session_state:
-        st.session_state.model_or_folder_name = ""
-
-    # Input fields linked directly to session_state keys
-    pasted_text = st.text_area(
-        "Paste URLs and descriptions", 
-        key="pasted_text", 
-        height=200
+    st.title("URL Cleaner")
+    
+    # Manual Text Area Cleaner
+    main_page_url = st.text_area(
+        "Enter text containing URLs:", 
+        key="cleaner_main_page_url", 
+        height=200, 
+        help="Paste raw text here to quickly extract valid links."
     )
     
-    model_or_folder_name = st.text_input(
-        "Model Name or Folder Name", 
-        key="model_or_folder_name"
+    if st.button("Clean URLs", key="cleaner_process_button"):
+        if not main_page_url.strip():
+            st.warning("Please enter some text or URLs first.")
+        else:
+            cleaned = clean_urls(main_page_url)
+            st.text_area("Cleaned URLs", value="\n".join(cleaned), height=300, key="cleaner_cleaned_urls")
+            st.success(f"Extracted {len(cleaned)} unique URL(s).")
+
+    st.divider()
+
+    # Batch File Processing Section
+    st.subheader("Batch Scrape Cleaner")
+    
+    filter_keyword = st.text_input(
+        "URL Filter Keyword:", 
+        value="gallery", 
+        help="Only URLs containing this string (e.g., 'gallery') will be kept in export.txt. Leave blank to keep all non-homepage links."
     )
-
-    # 3-column layout
-    col1, col2, col3 = st.columns(3)
-
-    # 1. CREATE FOLDER
-    with col1:
-        if st.button("Create Folder First", use_container_width=True):
-            if model_or_folder_name:
-                default_download_folder = st.session_state.get("download_folder", "")
-                if default_download_folder:
-                    folder_path = os.path.join(default_download_folder, model_or_folder_name)
-                    if not os.path.exists(folder_path):
-                        os.makedirs(folder_path)
-                        st.success(f"Folder '{model_or_folder_name}' created!")
-                    else:
-                        st.warning(f"Folder '{model_or_folder_name}' already exists.")
-                else:
-                    st.error("Please set the download folder in the Settings tab first.")
+    
+    if st.button("Search scrape.txt & Save as export.txt", key="cleaner_search_button"):
+        try:
+            download_folder = load_settings()
+            if not download_folder:
+                st.error("Download folder not set. Please set it in the Settings tab.")
+                return
+            
+            files_processed = process_scrape_files(download_folder, filter_keyword=filter_keyword)
+            
+            if files_processed > 0:
+                st.success(f"Processed {files_processed} 'scrape.txt' file(s) and saved filtered URLs to 'export.txt'.")
             else:
-                st.error("Please enter a model name or folder name.")
-
-    # 2. EXPORT (Moved to 2nd position)
-    with col2:
-        if st.button("Export", use_container_width=True):
-            if pasted_text:
-                urls = extract_urls(pasted_text)
-                if urls:
-                    filename = "export.txt"
-                    file_content = "\n".join(urls)
-                    default_download_folder = st.session_state.get("download_folder", "")
-                    
-                    if default_download_folder:
-                        folder_path = os.path.join(default_download_folder, model_or_folder_name)
-                        # Ensure folder exists before writing
-                        os.makedirs(folder_path, exist_ok=True)
-                        
-                        file_path = os.path.join(folder_path, filename)
-                        with open(file_path, "w", encoding="utf-8") as file:
-                            file.write(file_content)
-
-                        st.success(f"Exported {len(urls)} URLs to '{file_path}'.")
-                    else:
-                        st.error("Please set the download folder in the Settings tab first.")
-                else:
-                    st.error("No URLs found in the pasted text.")
-            else:
-                st.error("Please paste some URLs and descriptions.")
-
-    # 3. CLEAN / RESET (Moved to 3rd position, using callback)
-    with col3:
-        st.button("Clean", on_click=reset_fields, use_container_width=True)
-
-
-def extract_urls(text):
-    """Extracts all http/https links from raw input text."""
-    url_pattern = re.compile(r'https?://[^\s]+')
-    return url_pattern.findall(text)
-
+                st.info("No 'scrape.txt' files were found in your download folder.")
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     cleaner_tab()
