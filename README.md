@@ -10,7 +10,7 @@ python -m venv venv
 
 activate the venv folder: venv\scripts\activate.bat
 
-run: pip install -r requirements.txt
+pip install -r requirements.txt && python -m playwright install chromium
 
 afterwards run
 
