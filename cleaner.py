@@ -29,8 +29,8 @@ def cleaner_tab():
     
     filter_keyword = st.text_input(
         "URL Filter Keyword:", 
-        value="gallery", 
-        help="Only URLs containing this string (e.g., 'gallery') will be kept in export.txt. Leave blank to keep all non-homepage links."
+        value="galleries", 
+        help="Only URLs containing this string (e.g., 'galleries') will be kept in export.txt. Leave blank to keep all non-homepage links."
     )
     
     if st.button("Search scrape.txt & Save as export.txt", key="cleaner_search_button"):
