@@ -2,17 +2,16 @@ import time
 from urllib.parse import urljoin, urlparse
 from playwright.sync_api import sync_playwright
 
-def scrape_first_layer_urls(main_page_url, allow_external=True, max_scrolls=15, scroll_delay=1.5):
+def scrape_first_layer_urls(main_page_url, allow_external=True, max_scrolls=300, max_retries=3, idle_timeout=1.5):
     """
-    Launches a browser, scrolls down to load dynamic/lazy-loaded content,
-    and extracts all links from the fully rendered page.
+    Dynamically scrolls galleries until no new content loads (handling 60 to 2000+ items),
+    using retries and network-idle checks before stopping.
     """
     first_layer_urls = set()
     parsed_main = urlparse(main_page_url)
     base_domain = f"{parsed_main.scheme}://{parsed_main.netloc}"
 
     with sync_playwright() as p:
-        # Launch headless Chromium browser with a realistic user-agent
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(
             user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -22,22 +21,38 @@ def scrape_first_layer_urls(main_page_url, allow_external=True, max_scrolls=15, 
         print(f"Navigating to {main_page_url}...")
         page.goto(main_page_url, wait_until="domcontentloaded", timeout=30000)
 
-        # Infinite Scroll Loop
         last_height = page.evaluate("document.body.scrollHeight")
-        for i in range(max_scrolls):
-            # Scroll to bottom of page
+        retries = 0
+        scroll_count = 0
+
+        while scroll_count < max_scrolls:
+            # Scroll down to bottom
             page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            time.sleep(scroll_delay)  # Wait for AJAX/JS to fetch and render new elements
+            scroll_count += 1
+
+            # Wait for active network requests to finish
+            try:
+                page.wait_for_load_state("networkidle", timeout=3000)
+            except Exception:
+                time.sleep(idle_timeout)
 
             new_height = page.evaluate("document.body.scrollHeight")
-            if new_height == last_height:
-                print("Reached end of scroll or no new content loaded.")
-                break
-            
-            last_height = new_height
-            print(f"Scrolled {i + 1}/{max_scrolls} times...")
 
-        # Extract all rendered href links
+            # Check if page height stopped expanding
+            if new_height == last_height:
+                retries += 1
+                print(f"No new content yet (retry {retries}/{max_retries})...")
+                time.sleep(1.5)
+                
+                if retries >= max_retries:
+                    print("Reached true end of gallery.")
+                    break
+            else:
+                retries = 0
+                last_height = new_height
+                print(f"Scroll {scroll_count}: Page expanded (Height: {new_height}px)")
+
+        # Extract all rendered links
         raw_hrefs = page.eval_on_selector_all('a[href]', 'elements => elements.map(e => e.getAttribute("href"))')
         browser.close()
 
@@ -55,4 +70,8 @@ def scrape_first_layer_urls(main_page_url, allow_external=True, max_scrolls=15, 
             if abs_url.startswith(base_domain):
                 first_layer_urls.add(abs_url)
 
+    print(f"Successfully scraped {len(first_layer_urls)} unique URLs.")
     return list(first_layer_urls)
+
+# Alias so both function names work across all scripts
+scrape_gallery_urls = scrape_first_layer_urls
