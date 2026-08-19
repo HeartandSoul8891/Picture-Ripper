@@ -13,14 +13,22 @@ def run_gallery_dl():
     for folder_name in os.listdir(default_download_folder):
         folder_path = os.path.join(default_download_folder, folder_name)
         export_file_path = os.path.join(folder_path, "export.txt")
+        scrape_file_path = os.path.join(folder_path, "scrape.txt")
 
         if os.path.isdir(folder_path) and os.path.exists(export_file_path):
             process = subprocess.Popen(
                 ["gallery-dl", "-d", folder_path, "-i", export_file_path]
             )
             process.wait()
+            
             if process.returncode == 0:
-                os.remove(export_file_path)
+                # Remove export.txt if it exists
+                if os.path.exists(export_file_path):
+                    os.remove(export_file_path)
+                
+                # Remove scrape.txt if it exists
+                if os.path.exists(scrape_file_path):
+                    os.remove(scrape_file_path)
 
 def downloader_tab():
     st.title("Downloader")

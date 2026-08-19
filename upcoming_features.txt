@@ -1,0 +1,5 @@
+add a delete for the scrape.txt after finishing download
+add a way of seeing the cue of dowloads and an option to manage these
+
+in settings: add option for "finished downloads"
+    -> after downloading move finished downloads to the set folder
