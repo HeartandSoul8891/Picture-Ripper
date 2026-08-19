@@ -36,4 +36,4 @@ Settings:
 used sources:
 
 https://github.com/mikf/gallery-dl -> special thanks for such amazing app
-https://streamlit.io/ -> for the lovley UI 
+https://streamlit.io/ -> for the beautiful UI 
