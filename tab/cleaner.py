@@ -1,6 +1,6 @@
 import streamlit as st
 import os as os
-from settings import load_settings
+from tab.settings import load_settings
 from scripts.clean_script import clean_urls
 from scripts.clean_scrape_script import process_scrape_files
 

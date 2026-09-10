@@ -1,12 +1,11 @@
 import streamlit as st
-import settings
-import cleaner
-import downloader
-import link_grabber
+import tab.settings as settings
+import tab.cleaner as cleaner
+import tab.downloader as downloader
+import tab.link_grabber as link_grabber
 
 def main():
-    st.set_page_config(page_title="Picture Downloader", layout="wide")
-    st.title("Picture Downloader")
+    st.set_page_config(page_title="Picture Downloader",page_icon="🖼️", layout="wide")
     
     tabs = st.tabs([
         "Link Grabber", 

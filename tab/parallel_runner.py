@@ -3,7 +3,7 @@ import subprocess
 from concurrent.futures import ThreadPoolExecutor
 import streamlit as st
 
-from settings import load_settings
+from tab.settings import load_settings
 from scripts.scraper_script import scrape_first_layer_urls
 from scripts.clean_scrape_script import process_scrape_files
 

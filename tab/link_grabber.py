@@ -1,7 +1,7 @@
 import os
 import streamlit as st
 from scripts.scraper_script import scrape_first_layer_urls
-from settings import load_settings
+from tab.settings import load_settings
 
 
 def link_grabber_tab():

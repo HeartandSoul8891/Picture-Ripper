@@ -2,7 +2,7 @@ import os
 import subprocess
 import threading
 import streamlit as st
-from settings import load_settings
+from tab.settings import load_settings
 
 def run_gallery_dl():
     """Runs in the background thread."""
